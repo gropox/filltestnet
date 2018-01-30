@@ -1,0 +1,25 @@
+{
+  "name": "filltestnet",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gropox/filltestnet.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gropox/filltestnet/issues"
+  },
+  "homepage": "https://github.com/gropox/filltestnet#readme",
+  "dependencies": {
+    "basescript": "0.0.3",
+    "golos-addons": "^1.0.11",
+    "golos-js": "^0.5.21",
+    "json5": "^0.5.1"
+  }
+}

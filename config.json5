@@ -1,0 +1,79 @@
+{
+    websocket : "ws://stat:9090",
+    chain_id : "5876894a41e6361bde2e73278f07340f2eb8b41c2facd29099de9deef6cdb679",
+    prefix : "GLS",
+
+    initminer : {
+        account: "cyberfounder",
+        keys: {
+            owner : "5JVFFWRLwz6JoP9kguuRFfytToGU6cLgBVTL9t6NB3D3BQLbUBS",
+            active : "5JVFFWRLwz6JoP9kguuRFfytToGU6cLgBVTL9t6NB3D3BQLbUBS"
+        }
+    },
+    user : {
+        pkeys: {
+            owner: "5JMUYvoLdT6LKqQdpU5gWQ8S9PqPPy8mDCoN9o6BYktdENo3sGa",
+            active: "5KkkgDP5nePBXjv88igBS6mJU7NWvpXjk7UrxD6CeqMFRtRpaCV",
+            posting: "5KbzQNawUY3XRbfQ5bHqaAXX8bXq1aRmAwp1jsNN4fK9yuBmd9Y",
+            memo : "5KdTUas4PcBXhebwBdFcNTq3rNGbRxyJkXD7xL7fAcwuP5tXuJr"
+        },
+        keys: {
+          "owner": {
+            "weight_threshold": 1,
+            "account_auths": [],
+            "key_auths": [
+              [
+                "GLS5xRkqKHj6rVZcd2uUmkZMfUtEQk5N5baQ4SmTrHn2stRZT4FDR",
+                1
+              ]
+            ]
+          },
+          "active": {
+            "weight_threshold": 1,
+            "account_auths": [],
+            "key_auths": [
+              [
+                "GLS85BQVF2c2FvoZLman9KiekdquufG3iDveJYrWyp9ZCaCma6WSu",
+                1
+              ]
+            ]
+          },
+          "posting": {
+            "weight_threshold": 1,
+            "account_auths": [],
+            "key_auths": [
+              [
+                "GLS71gj6639VdMdscc5thyHv8MkrZC52EMjfgmNv7o9vSQch5uKWk",
+                1
+              ]
+            ]
+          },
+          "memo_key": "GLS8REmUZqDpN3vxH4M16NuUC2Gf7cEHTQKZGWXA6KNCUPXjMUyY6",
+          "json_metadata": "{}"
+        }
+    }
+
+    /* Распределение пользователей. 
+    За основу взята статистика arcange, только активные пользователи
+        46	    2
+        221	    10
+        701	    31
+        2621	118
+        9768	439
+        13357	600
+
+        Создадим 600 пользователей, что бы получить как минимум 2 кита
+    */
+    ,user_distribution : {
+        fish : 439,
+        minnow : 118,
+        dolphin : 31,
+        orca : 10,
+        whale : 2
+    }
+
+    ,posting : {
+        interval : 3600 //секунд
+    }
+
+}
