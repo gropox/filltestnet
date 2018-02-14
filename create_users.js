@@ -75,6 +75,7 @@ async function commit() {
                 },
                 { "active": CONFIG.initminer.keys.active });
             OPERATIONS = [];
+            await global.sleep(200);
             return;
         } catch (e) {
             log.error("Ошибка отправки транзакции", e);

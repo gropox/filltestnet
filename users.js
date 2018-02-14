@@ -4,6 +4,8 @@ const log = global.getLogger("users");
 
 const CONFIG = global.CONFIG;
 
+
+
 const USER_NAMES = {
     fish: [],
     minnow: [],
