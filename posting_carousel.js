@@ -4,6 +4,7 @@ const golosjs = ga.golos.golos;
 
 global.initApp("filltestnet", "config.json5");
 
+const dopost = require("./dopost");
 const log = global.getLogger("posting");
 
 const CONFIG = global.CONFIG;
@@ -15,8 +16,8 @@ ga.golos.setPrefix(CONFIG.prefix);
 const Users = require("./users");
 var loremIpsum = require('lorem-ipsum');
 
-const MAX_DELAY = 1000 * 60 * 60; //1 hour
-const MAX_COMMENT_DEPTH = 10;
+const MAX_DELAY = 1000 * 60 * 3; //1 hour
+const MAX_COMMENT_DEPTH = 12;
 const MAX_POSTS = 50;
 const MIN_POST_INTERVAL = 1000 * 60;
 const MAX_POST_INTERVAL = 1000 * 60 * 5;
@@ -152,16 +153,29 @@ class Post {
     }
 
     async broadcast() {
-        await golosjs.broadcast.commentAsync(CONFIG.user.pkeys.posting, this.parent_author, this.parent_permlink, this.author, this.permlink, this.title, this.body, {});
+        log.debug("broadcast comment", this.author);
+        dopost.comment(this.parent_author, this.parent_permlink, this.author, this.permlink, this.title, this.body, {});
+        dopost.comment_payout_beneficiaries(this.author, this.permlink, "1000000.000 GBG", 0, true, true,
+            { beneficiaries: [{ account: "fish00000", weight: 100 }, { account: "fish00001", weight: 50 }] });
+
+
+        log.debug("execute comment", this.author);
+        await dopost.execute(CONFIG.user.pkeys.posting);
     }
 }
 
 
 async function processVotes(post, block) {
+    let content = await golosjs.api.getContentAsync(post.author, post.permlink);
+    log.debug("content", content);
+    if (content.permlink != post.permlink || content.mode == "archived") {
+        post.voters = [];
+        return;
+    }
     while (post.voters.length > 0 && post.voters[0].timeout < Date.now()) {
         const voter = post.voters.shift();
         if (block.includes(voter.user)) {
-            await global.sleep(4 * 1000);
+            await global.sleep(500);
         } else {
             block.push(voter.user);
         }        
@@ -175,6 +189,11 @@ async function processVotes(post, block) {
 }
 
 async function processComments(post, block) {
+    let content = await golosjs.api.getContentAsync(post.author, post.permlink);
+    if (content.permlink != post.permlink || Date.parse(content.created) < Date.now() - (1000*60*60)) {
+        post.commentators = [];
+        return;
+    }
     while (post.commentators.length > 0 && post.commentators[0].timeout < Date.now()) {
         const commentator = post.commentators.shift();
         if (block.includes(commentator.user)) {
@@ -254,7 +273,7 @@ async function run() {
 
         await processPipline();
 
-        await global.sleep(1000*5);
+        await global.sleep(1000);
     }
 }
 
