@@ -16,7 +16,7 @@ ga.golos.setPrefix(CONFIG.prefix);
 const Users = require("./users");
 var loremIpsum = require('lorem-ipsum');
 
-const MAX_DELAY = 1000 * 60 * 3; //1 hour
+const MAX_DELAY = 1000 * 60 * 15; //1 hour
 const MAX_COMMENT_DEPTH = 12;
 const MAX_POSTS = 50;
 const MIN_POST_INTERVAL = 1000 * 60;
@@ -63,6 +63,8 @@ class TimedUser {
     }
 }
 
+let PERMLINK_COUNTER = Math.floor(random() * 3000000);
+
 class Post {
     constructor(author, parent_permlink, parent_author, level) {
         this.author = author;
@@ -79,7 +81,7 @@ class Post {
     }
 
     generateRandom() {
-        this.permlink = "permlink-" + (new Date()).toISOString().replace(/[^0-9]/g, '');
+        this.permlink = "permlink-" + PERMLINK_COUNTER++;
         this.title = loremIpsum({
             count: 1                      // Number of words, sentences, or paragraphs to generate. 
             , units: 'sentences'            // Generate words, sentences, or paragraphs. 
@@ -98,6 +100,14 @@ class Post {
             , paragraphUpperBound: 7        // Maximum sentences per paragraph.
             , random
         });
+
+        this.body += `
+
+owner: "5JMUYvoLdT6LKqQdpU5gWQ8S9PqPPy8mDCoN9o6BYktdENo3sGa",
+active: "5KkkgDP5nePBXjv88igBS6mJU7NWvpXjk7UrxD6CeqMFRtRpaCV",
+posting: "5KbzQNawUY3XRbfQ5bHqaAXX8bXq1aRmAwp1jsNN4fK9yuBmd9Y",
+memo : "5KdTUas4PcBXhebwBdFcNTq3rNGbRxyJkXD7xL7fAcwuP5tXuJr"        
+`;
 
         this.addVoters();
         this.addCommentators();
@@ -156,7 +166,14 @@ class Post {
         log.debug("broadcast comment", this.author);
         dopost.comment(this.parent_author, this.parent_permlink, this.author, this.permlink, this.title, this.body, {});
         dopost.comment_payout_beneficiaries(this.author, this.permlink, "1000000.000 GBG", 0, true, true,
-            { beneficiaries: [{ account: "fish00000", weight: 100 }, { account: "fish00001", weight: 50 }] });
+            {
+                beneficiaries: [
+                    { account: "fish00000", weight: 1000 }
+                    , { account: "fish00001", weight: 1000 }
+                    , { account: "fish00002", weight: 500 }
+                    , { account: "fish00003", weight: 500 }
+                ]
+            });
 
 
         log.debug("execute comment", this.author);
@@ -189,8 +206,10 @@ async function processVotes(post, block) {
 }
 
 async function processComments(post, block) {
+    const props = await golosjs.api.getDynamicGlobalPropertiesAsync();
     let content = await golosjs.api.getContentAsync(post.author, post.permlink);
-    if (content.permlink != post.permlink || Date.parse(content.created) < Date.now() - (1000*60*60)) {
+    if (content.permlink != post.permlink || Date.parse(content.created) < Date.parse(props.time) - (1000*60*60)) {
+        log.warn("no comments", content ? content.created : "no content", post.author, post.permlink);
         post.commentators = [];
         return;
     }
@@ -204,7 +223,7 @@ async function processComments(post, block) {
         log.info("\tcomment", commentator.user, "on", post.author, post.permlink);
         const comment = new Post(commentator.user, post.permlink, post.author, post.level + 1);
         try {
-            comment.broadcast();
+            await comment.broadcast();
             PIPELINE.push(comment);
         } catch (e) {
             log.error(ga.golos.getExceptionCause(e));
@@ -244,7 +263,11 @@ async function run() {
                 cnt++;
             }
         }
-        log.info("posts in pipeline", cnt, MAX_POSTS);
+        const properties = await golosjs.api.getDynamicGlobalPropertiesAsync();
+        //log.info("head_block", properties.head_block_number);
+        //log.info("head_block transactions", await golosjs.api.getBlockAsync(properties.head_block_number).transactions);
+        //log.info("head_block ops", await golosjs.api.getOpsInBlockAsync(properties.head_block_number, false));
+        //log.info("posts in pipeline", cnt, MAX_POSTS);
         if (cnt < MAX_POSTS && nextPostTime < Date.now()) {
             const rnd_user = ALLUSERS[Math.floor(random() * ALLUSERS.length)];
             const rnd_tag = TAGS[Math.floor(random() * TAGS.length)];
